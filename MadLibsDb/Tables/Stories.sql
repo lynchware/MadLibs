@@ -1,0 +1,6 @@
+﻿CREATE TABLE [dbo].[Stories]
+(
+	[Id] INT NOT NULL PRIMARY KEY,
+	Title NVARCHAR(100) NOT NULL,
+    Template NVARCHAR(MAX) NOT NULL,
+)
