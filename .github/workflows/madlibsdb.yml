@@ -1,4 +1,4 @@
-name: sqlproj
+name: MadLibsDb
 
 on:
   push:
