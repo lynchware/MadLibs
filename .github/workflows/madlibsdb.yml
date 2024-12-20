@@ -1,4 +1,4 @@
-name: MadLibsDb
+name: sqlproj-sample
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -16,8 +16,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: List directory contents
-      run: ls -R
+    - name: Install MSBuild
+      run: choco install microsoft-build-tools -y
 
     - name: Build
-      run: dotnet build ./MadLibsDb/MadLibsDb.sqlproj
+      run: msbuild ./MadLibsDb/MadLibsDb.sqlproj
