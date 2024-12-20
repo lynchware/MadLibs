@@ -16,5 +16,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: List directory contents
+      run: ls -R
+
     - name: Build
       run: dotnet build ../MadLibsDb/MadLibsDb.sqlproj
