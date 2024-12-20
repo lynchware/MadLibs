@@ -18,6 +18,8 @@ jobs:
 
     - name: List directory contents
       run: ls -R
+    - name: List MadLibsDb directory contents
+      run: ls -la ../MadLibsDb
 
     - name: Build
-      run: dotnet build ../MadLibsDb/MadLibsDb.sqlproj
+      run: dotnet build ./MadLibsDb/MadLibsDb.sqlproj
