@@ -1,0 +1,5 @@
+﻿CREATE PROCEDURE GetAllStoriesByUser
+AS
+BEGIN
+    SELECT * FROM Stories
+END

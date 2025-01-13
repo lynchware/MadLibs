@@ -57,10 +57,19 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Tables" />
+    <Folder Include="StoredProcedures" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Stories.sql" />
     <Build Include="Tables\Placeholders.sql" />
     <Build Include="Tables\UserResponses.sql" />
+    <Build Include="StoredProcedures\GetAllStories.sql" />
+    <Build Include="StoredProcedures\GetStoryById.sql" />
+    <Build Include="StoredProcedures\GetPlaceholdersByStory.sql" />
+    <Build Include="StoredProcedures\GetUserResponsesByStory.sql" />
+    <Build Include="Tables\Theme.sql" />
+    <Build Include="StoredProcedures\GetEverything.sql" />
+    <Build Include="StoredProcedures\GetStoriesViewModels.sql" />
+    <Build Include="StoredProcedures\GetAllThemes.sql" />
   </ItemGroup>
 </Project>

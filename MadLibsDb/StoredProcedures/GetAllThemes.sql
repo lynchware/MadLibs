@@ -1,0 +1,5 @@
+﻿CREATE PROCEDURE [dbo].[GetAllThemes]
+AS
+BEGIN
+    SELECT * FROM Theme
+END

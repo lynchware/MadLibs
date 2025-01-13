@@ -1,23 +1,73 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Medium">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = Colors.DeepOrange.Darken4,
+            Secondary = Colors.BlueGray.Darken2,
+            PrimaryLighten = Colors.DeepOrange.Lighten3,
+            SecondaryLighten = Colors.BlueGray.Lighten4,
+            Warning = Colors.Amber.Accent4,
+            Info = Colors.Green.Default,
+            TextPrimary = Colors.BlueGray.Darken4,
+            TextSecondary = Colors.DeepOrange.Darken4,
+            AppbarBackground = Colors.BlueGray.Darken3,
+            AppbarText = Colors.Amber.Lighten4,
+            DrawerBackground = Colors.BlueGray.Darken3,
+            DrawerIcon = Colors.Amber.Lighten2,
+            DrawerText = Colors.DeepOrange.Lighten3,
+            Background = Colors.Amber.Lighten3
+        },
+        Typography = new Typography()
+        {
+            Default = new Default()
+            {
+                FontSize = "0.9rem",
+                LineHeight = 1.6
+            },
+            H1 = new()
+            {
+                FontWeight = 600,
+                FontSize = "4rem"
+            },
+            Subtitle1 = new(){
+                FontSize = "1.3rem",
+                FontWeight = 500
+            },
+            Subtitle2 = new(){
+                FontSize = "1.2rem",
+                FontWeight = 400
+            }
+
+        }
+    };
+    private bool _drawerOpen = true;
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

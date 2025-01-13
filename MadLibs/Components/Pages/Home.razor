@@ -1,7 +1,46 @@
 ﻿@page "/"
+@using MadLibs.Data
+@using MadLibs.Models
+@inject IStoriesRepository _storiesRepository
 
 <PageTitle>Home</PageTitle>
+<MudText Typo="Typo.h1" Align="Align.Center">MadLibs!!</MudText>
+<MudText Typo="Typo.subtitle1" Align="Align.Center">Select from the following themes to start creating your own story</MudText>
+<MudGrid Justify="Justify.Center">
 
-<h1>Hello, world!</h1>
+</MudGrid>
 
-Welcome to your new app.
+@code {
+    private List<StoriesViewModel> StoriesViewModels = new();
+    private Dictionary<int, List<StoriesViewModel>> StoriesByTheme = new(); 
+    private int SelectedThemeId = 0;
+    private StoriesViewModel? SelectedStory = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StoriesViewModels = (await _storiesRepository.GetStoriesViewModelsAsync()).ToList();
+        // Group and organize themes for display
+        StoriesByTheme = StoriesViewModels
+            .GroupBy(s => s.ThemeId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.ToList()
+            );
+    }
+
+    private void SelectTheme(int themeId)
+    {
+        SelectedThemeId = themeId;
+        SelectedStory = null; // Clear any selected story when a new theme is selected
+    }
+
+    private List<StoriesViewModel> GetStoriesByTheme(int themeId)
+    {
+        return StoriesViewModels.Where(s => s.ThemeId == themeId).ToList();
+    }
+
+    private void SelectStory(StoriesViewModel story)
+    {
+        SelectedStory = story;
+    }
+}
