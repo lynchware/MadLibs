@@ -25,39 +25,35 @@ namespace MadLibs.Data
 
             using var connection = CreateConnection();
 
-            // Dictionary to ensure only one StoriesViewModel per Story Id
-            var storyDictionary = new Dictionary<int, StoriesViewModel>();
-
             var queryResult = await connection.QueryAsync<StoriesViewModel, Placeholder, UserResponse, StoriesViewModel>(
                 sql,
                 (viewModel, placeholder, response) =>
                 {
-                    // Find or create the StoriesViewModel
-                    if(!storyDictionary.TryGetValue(viewModel.Id, out var existingViewModel))
-                    {
-                        existingViewModel = viewModel;
-                        storyDictionary.Add(existingViewModel.Id, existingViewModel);
-                    }
-
-                    // Add placeholders
-                    if(placeholder != null && !existingViewModel.Placeholders.Any(p => p.Id == placeholder.Id))
-                    {
-                        existingViewModel.Placeholders.Add(placeholder);
-                    }
-
-                    // Add responses
-                    if(response != null && !existingViewModel.Responses.Any(r => r.Id == response.Id))
-                    {
-                        existingViewModel.Responses.Add(response);
-                    }
-
-                    return existingViewModel;
+                    if(placeholder != null)
+                        viewModel.Placeholders.Add(placeholder);
+                    if(response != null)
+                        viewModel.Responses.Add(response);
+                    return viewModel;
                 },
                 commandType: CommandType.StoredProcedure
             );
 
-            // Return distinct StoriesViewModel objects
-            return storyDictionary.Values.ToList();
+            var results = queryResult.GroupBy(q => q.ThemeId)
+                .Select(g =>
+                {
+                    var theme = g.First();
+                    theme.Id = g.First().Id;
+                    theme.Title = g.First().Title;
+                    theme.Template = g.First().Template;
+                    theme.ImagePath = g.First().ImagePath;
+                    theme.IsExpanded = g.First().IsExpanded;
+                    theme.Responses = g.SelectMany(q => q.Responses).ToList();
+                    theme.Placeholders = g.SelectMany(q => q.Placeholders).ToList();
+
+                    return theme;
+                });
+
+            return results.ToList();
         }
 
     }
