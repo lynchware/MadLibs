@@ -3,15 +3,18 @@ AS
 BEGIN
     SELECT 
         s.Id AS StoryId,
-        s.Title AS StoryTitle,
+        s.Title AS Title,
         s.Template,
         s.ThemeId,
         t.Theme AS ThemeName,
-        p.Id AS PlaceholderId,
-        p.Placeholder,
-        r.Id AS ResponseId,
-        r.PlaceholderId AS ResponsePlaceholderId,
-        r.Word AS ResponseWord
+        t.ImagePath AS ImagePath,
+        p.Id,
+        p.StoryId,
+        p.Placeholder as PlaceholderText,
+        r.Id,
+        r.StoryId,
+        r.PlaceholderId,
+        r.Word
     FROM Stories s
     LEFT JOIN Theme t ON s.ThemeId = t.Id
     LEFT JOIN Placeholders p ON s.Id = p.StoryId

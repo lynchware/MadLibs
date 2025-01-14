@@ -25,25 +25,41 @@ namespace MadLibs.Data
 
             using var connection = CreateConnection();
 
-            // Fetch the data and map it directly
-            var result = await connection.QueryAsync<StoriesViewModel, Placeholder, UserResponse, StoriesViewModel>(
+            // Dictionary to ensure only one StoriesViewModel per Story Id
+            var storyDictionary = new Dictionary<int, StoriesViewModel>();
+
+            var queryResult = await connection.QueryAsync<StoriesViewModel, Placeholder, UserResponse, StoriesViewModel>(
                 sql,
                 (viewModel, placeholder, response) =>
                 {
-                    if(placeholder != null)
-                        viewModel.Placeholders.Add(placeholder);
+                    // Find or create the StoriesViewModel
+                    if(!storyDictionary.TryGetValue(viewModel.Id, out var existingViewModel))
+                    {
+                        existingViewModel = viewModel;
+                        storyDictionary.Add(existingViewModel.Id, existingViewModel);
+                    }
 
-                    if(response != null)
-                        viewModel.Responses.Add(response);
+                    // Add placeholders
+                    if(placeholder != null && !existingViewModel.Placeholders.Any(p => p.Id == placeholder.Id))
+                    {
+                        existingViewModel.Placeholders.Add(placeholder);
+                    }
 
-                    return viewModel;
+                    // Add responses
+                    if(response != null && !existingViewModel.Responses.Any(r => r.Id == response.Id))
+                    {
+                        existingViewModel.Responses.Add(response);
+                    }
+
+                    return existingViewModel;
                 },
-                splitOn: "PlaceholderId,ResponseId",
                 commandType: CommandType.StoredProcedure
             );
 
-            return result.Distinct().ToList();
+            // Return distinct StoriesViewModel objects
+            return storyDictionary.Values.ToList();
         }
+
     }
 }
 

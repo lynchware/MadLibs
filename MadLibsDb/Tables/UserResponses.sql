@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [dbo].[UserResponses]
 (
-	[Id] INT NOT NULL PRIMARY KEY,
+	[Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	[StoryId] INT NOT NULL,
 	[PlaceholderId] INT NOT NULL,
 	[Word] NVARCHAR(50) NOT NULL,
