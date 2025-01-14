@@ -27,10 +27,12 @@
     {
         PaletteLight = new PaletteLight()
         {
-            Primary = Colors.DeepOrange.Darken4,
-            Secondary = Colors.BlueGray.Darken2,
-            PrimaryLighten = Colors.DeepOrange.Lighten3,
-            SecondaryLighten = Colors.BlueGray.Lighten4,
+                Primary =  Colors.BlueGray.Darken3,
+                Secondary = Colors.Amber.Lighten3,
+                PrimaryLighten = Colors.BlueGray.Lighten4,
+                SecondaryLighten = Colors.Amber.Darken3,
+                Tertiary = Colors.LightBlue.Lighten5,
+                Dark = Colors.DeepOrange.Darken4,
             Warning = Colors.Amber.Accent4,
             Info = Colors.Green.Default,
             TextPrimary = Colors.BlueGray.Darken4,
@@ -39,8 +41,8 @@
             AppbarText = Colors.Amber.Lighten4,
             DrawerBackground = Colors.BlueGray.Darken3,
             DrawerIcon = Colors.Amber.Lighten2,
-            DrawerText = Colors.DeepOrange.Lighten3,
-            Background = Colors.Amber.Lighten3
+            DrawerText = Colors.Amber.Lighten3,
+            Background = Colors.Amber.Lighten4
         },
         Typography = new Typography()
         {
@@ -52,7 +54,12 @@
             H1 = new()
             {
                 FontWeight = 600,
-                FontSize = "4rem"
+                FontSize = "4rem",
+                LetterSpacing = "4px"
+            },
+            H5 = new()
+            {
+                FontWeight= 600
             },
             Subtitle1 = new(){
                 FontSize = "1.3rem",

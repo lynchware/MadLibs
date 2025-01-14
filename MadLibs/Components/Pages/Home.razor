@@ -1,13 +1,36 @@
 ﻿@page "/"
+@using MadLibs.Components.Widgets
 @using MadLibs.Data
 @using MadLibs.Models
 @inject IStoriesRepository _storiesRepository
+@inject IDialogService DialogService
 
 <PageTitle>Home</PageTitle>
-<MudText Typo="Typo.h1" Align="Align.Center">MadLibs!!</MudText>
-<MudText Typo="Typo.subtitle1" Align="Align.Center">Select from the following themes to start creating your own story</MudText>
-<MudGrid Justify="Justify.Center">
-
+<MudText Typo="Typo.h1" Color="Color.Primary" Align="Align.Center">MadLibs!!</MudText>
+<MudText Color="Color.Dark" Typo="Typo.subtitle1" Align="Align.Center">Select from the following themes to start creating your own story</MudText>
+<MudGrid Class="mt-3" Spacing="15" Justify="Justify.Center">
+    <MudItem xs="12" md="6">
+        <MudLink OnClick="() => SelectTheme(1)">
+            <MudCard Elevation="3" Style="background-color: var(--mud-palette-primary)">
+                <MudCardMedia Image="/img/enchanted-theme.webp" Height="200" />
+                <MudCardContent>
+                    <MudText Color="Color.Secondary" Typo="Typo.h5">Enchanted Expeditions</MudText>
+                    <MudText Color="Color.Tertiary" Typo="Typo.body2">Epic journeys powered by magic and questionable decisions in a WiFi Castle!</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudLink>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudLink Href="/madlibs?themeId=2">
+            <MudCard Elevation="3" Style="background-color: var(--mud-palette-primary) ">
+                <MudCardMedia Image="/img/corporate-chaos2.webp" Height="200" />
+                <MudCardContent>
+                    <MudText Color="Color.Secondary" Typo="Typo.h5">Corporate Chronicles</MudText>
+                    <MudText Color="Color.Tertiary" Typo="Typo.body2">Hilarious office antics with rogue paperclips and staplers that bite!</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudLink>
+    </MudItem>
 </MudGrid>
 
 @code {
@@ -15,11 +38,17 @@
     private Dictionary<int, List<StoriesViewModel>> StoriesByTheme = new(); 
     private int SelectedThemeId = 0;
     private StoriesViewModel? SelectedStory = null;
+    private DialogOptions dialogOptions = new(){
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            MaxWidth = MaxWidth.Large,
+            BackdropClick = true,
+            Position = DialogPosition.TopCenter
+    };
 
     protected override async Task OnInitializedAsync()
     {
         StoriesViewModels = (await _storiesRepository.GetStoriesViewModelsAsync()).ToList();
-        // Group and organize themes for display
         StoriesByTheme = StoriesViewModels
             .GroupBy(s => s.ThemeId)
             .ToDictionary(
@@ -28,19 +57,14 @@
             );
     }
 
-    private void SelectTheme(int themeId)
+    private Task SelectTheme(int themeId)  //This is not working yet.  However i'm going to change it to an accordian view.
     {
-        SelectedThemeId = themeId;
-        SelectedStory = null; // Clear any selected story when a new theme is selected
-    }
-
-    private List<StoriesViewModel> GetStoriesByTheme(int themeId)
-    {
-        return StoriesViewModels.Where(s => s.ThemeId == themeId).ToList();
-    }
-
-    private void SelectStory(StoriesViewModel story)
-    {
-        SelectedStory = story;
+        var stories = StoriesByTheme.TryGetValue(themeId, out var storiesViewModels) ? storiesViewModels : new List<StoriesViewModel>();
+        var themeName = stories.First().ThemeName;
+        var dialogParameters = new DialogParameters
+            {
+                ["Stories"] = stories
+            };
+        return DialogService.ShowAsync<StoriesDialog>($"@{themeName} Stories", dialogParameters, dialogOptions);
     }
 }

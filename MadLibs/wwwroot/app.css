@@ -49,3 +49,20 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.blur {
+    backdrop-filter: blur(10px);
+}
+
+.dialog-background {
+    background-color: transparent;
+}
+
+.dialog-background-title {
+    background: rgb(from var(--mud-palette-info-lighten) r g b / 50%);
+    color: var(--mud-palette-white);
+}
+
+.dialog-background-surface {
+    background: rgb(from var(--mud-palette-surface) r g b / 75%);
+}
