@@ -1,15 +1,34 @@
 ﻿@page "/complete"
-@attribute [StreamRendering]
 
 <PageTitle>Completed MadLibs</PageTitle>
 
 <h1>Completed Mad Libs</h1>
+<MudButton OnClick="@(() => ToggleVisibility())"> Big button </MudButton>
+<MudButton @onclick="() => ToggleVisibility()"> No at </MudButton>
+<MudButton OnClick="ToggleVisibility"> Proccess </MudButton>
+<MudButton OnClick="@Print"> Sync </MudButton>
+<button class="btn btn-primary" @onclick="Print">Blazor Button</button>
 
 
 @code {
 
     protected override async Task OnInitializedAsync()
     {
-       
+        Print();
     }
+    async Task ToggleVisibility()
+    {
+        Console.WriteLine("asdklfj");
+        await Task.Delay(1000);
+    }
+    void ToggleVisibilitz()
+    {
+        Console.WriteLine("asdklfj");
+
+    }
+    private void Print()
+    {
+        Console.WriteLine("printing");
+    }
+
 }

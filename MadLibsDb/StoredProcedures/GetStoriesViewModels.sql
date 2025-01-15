@@ -2,8 +2,8 @@
 AS
 BEGIN
     SELECT 
-        s.Id AS StoryId,
-        s.Title AS Title,
+        s.Id,
+        s.Title,
         s.Template,
         s.ThemeId,
         t.Theme AS ThemeName,

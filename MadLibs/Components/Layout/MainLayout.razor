@@ -44,33 +44,34 @@
             DrawerText = Colors.Amber.Lighten3,
             Background = Colors.Amber.Lighten4
         },
-        Typography = new Typography()
-        {
-            Default = new Default()
+            Typography = new Typography()
             {
-                FontSize = "0.9rem",
-                LineHeight = 1.6
-            },
-            H1 = new()
-            {
-                FontWeight = 600,
-                FontSize = "4rem",
-                LetterSpacing = "4px"
-            },
-            H5 = new()
-            {
-                FontWeight= 600
-            },
-            Subtitle1 = new(){
-                FontSize = "1.3rem",
-                FontWeight = 500
-            },
-            Subtitle2 = new(){
-                FontSize = "1.2rem",
-                FontWeight = 400
+                Default = new DefaultTypography()
+                {
+                    FontSize = "0.9rem",
+                    LineHeight = "1.6"
+                },
+                H1 = new H1Typography()
+                {
+                    FontWeight = "600",
+                    FontSize = "4rem",
+                    LetterSpacing = "4px"
+                },
+                H5 = new H5Typography()
+                {
+                    FontWeight = "600"
+                },
+                Subtitle1 = new Subtitle1Typography()
+                {
+                    FontSize = "1.3rem",
+                    FontWeight = "500"
+                },
+                Subtitle2 = new Subtitle2Typography()
+                {
+                    FontSize = "1.2rem",
+                    FontWeight = "400"
+                }
             }
-
-        }
     };
     private bool _drawerOpen = true;
     private void DrawerToggle()

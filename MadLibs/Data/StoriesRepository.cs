@@ -38,19 +38,19 @@ namespace MadLibs.Data
                 commandType: CommandType.StoredProcedure
             );
 
-            var results = queryResult.GroupBy(q => q.ThemeId)
+            var results = queryResult.GroupBy(q => q.Id)
                 .Select(g =>
                 {
-                    var theme = g.First();
-                    theme.Id = g.First().Id;
-                    theme.Title = g.First().Title;
-                    theme.Template = g.First().Template;
-                    theme.ImagePath = g.First().ImagePath;
-                    theme.IsExpanded = g.First().IsExpanded;
-                    theme.Responses = g.SelectMany(q => q.Responses).ToList();
-                    theme.Placeholders = g.SelectMany(q => q.Placeholders).ToList();
+                    var story = g.First();
+                    story.Id = g.First().Id;
+                    story.Title = g.First().Title;
+                    story.Template = g.First().Template;
+                    story.ImagePath = g.First().ImagePath;
+                    story.IsExpanded = g.First().IsExpanded;
+                    story.Responses = g.SelectMany(q => q.Responses).ToList();
+                    story.Placeholders = g.SelectMany(q => q.Placeholders).ToList();
 
-                    return theme;
+                    return story;
                 });
 
             return results.ToList();

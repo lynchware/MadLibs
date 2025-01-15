@@ -1,29 +1,30 @@
 ﻿@page "/"
-@using MadLibs.Components.Widgets
 @using MadLibs.Data
 @using MadLibs.Models
 @inject IStoriesRepository _storiesRepository
 @inject NavigationManager _navigationManager
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
+
 <MudText Typo="Typo.h1" Color="Color.Primary" Align="Align.Center">MadLibs!!</MudText>
 <MudText Color="Color.Dark" Typo="Typo.subtitle1" Align="Align.Center">Select from the following themes to start creating your own story</MudText>
 <MudGrid Class="mt-3" Spacing="15" Justify="Justify.Center">
-    @foreach (var theme in StoriesByTheme)
+    @foreach (var theme in stories.GroupBy(s => s.ThemeId))
     {
         <MudItem xs="12" md="6">
-            <MudLink OnClick="() => ToggleCollapse(theme.Key)">
-                <MudCard Elevation="3" Style="background-color: var(--mud-palette-primary)">
-                    <MudCardMedia Image="@theme.Value.First().ImagePath" Height="200" />
+            <MudButton DropShadow="true" Class="pb-0" OnClick="@(() => ToggleVisibility(theme.Key))">
+                <MudCard Elevation="5" Style="background-color: var(--mud-palette-primary)">
+                    <MudCardMedia Image="@theme.First().ImagePath" Height="200" />
                     <MudCardContent>
-                        <MudText Color="Color.Secondary" Typo="Typo.h5">@theme.Value.First().ThemeName</MudText>
+                        <MudText Color="Color.Secondary" Typo="Typo.h5">@theme.First().ThemeName</MudText>
                         <MudText Color="Color.Tertiary" Typo="Typo.body2">Epic journeys powered by magic and questionable decisions in a WiFi Castle!</MudText>
                     </MudCardContent>
                 </MudCard>
-            </MudLink>
-            <MudCollapse Expanded="@theme.Value.First().IsExpanded">
+            </MudButton>
+            <MudCollapse Expanded="@expandedThemes.GetValueOrDefault(theme.Key, false)">
                 <MudList T="string">
-                    @foreach (var story in theme.Value)
+                    @foreach (var story in theme)
                     {
                         <MudListItem>
                             <MudText>@story.Title</MudText>
@@ -36,38 +37,41 @@
 </MudGrid>
 
 @code {
-    private List<StoriesViewModel> StoriesViewModels = new();
-    private Dictionary<int, List<StoriesViewModel>> StoriesByTheme = new(); 
-    private int SelectedThemeId = 0;
-    private StoriesViewModel? SelectedStory = null;
+    private List<StoriesViewModel> stories = new();
+    private int selectedThemeId = 0;
+    private StoriesViewModel? selectedStory = null;
+    private Dictionary<int, bool> expandedThemes = new();
 
     protected override async Task OnInitializedAsync()
     {
-        StoriesViewModels = (await _storiesRepository.GetStoriesViewModelsAsync()).ToList();
-        StoriesByTheme = StoriesViewModels
-            .GroupBy(s => s.ThemeId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.ToList()
-            );
+        stories = (await _storiesRepository.GetStoriesViewModelsAsync()).ToList();
+        Console.WriteLine("stories are populated!");
+        // Initialize expandedThemes dictionary with the first theme expanded
+        bool firstTheme = true;
+        foreach (var themeId in stories.GroupBy(s => s.ThemeId).Select(g => g.Key))
+        {
+            expandedThemes[themeId] = firstTheme;
+            firstTheme = false; // Only the first theme is expanded
+        }
+
+        // Optional: Print initialized dictionary for debugging
+        foreach (var kvp in expandedThemes)
+        {
+            Console.WriteLine($"ThemeId: {kvp.Key}, IsExpanded: {kvp.Value}");
+        }
+
     }
 
-    private void ToggleCollapse(int themeId)
+    async Task ToggleVisibility(int themeId)
     {
-        if (StoriesByTheme.TryGetValue(themeId, out var stories))
-        {
-            var isExpanded = stories.First().IsExpanded;
-            foreach (var story in stories)
-            {
-                story.IsExpanded = !isExpanded;
-            }
-        }
-    }
+        Console.WriteLine($"Toggling visibility for themeId: {themeId}");
+        expandedThemes[themeId] = !expandedThemes.GetValueOrDefault(themeId, false);
+        StateHasChanged();
+    }    
 
     private void SelectTheme(int themeId)  
     {
-        var stories = StoriesByTheme.TryGetValue(themeId, out var storiesViewModels) ? storiesViewModels : new List<StoriesViewModel>();
-        var themeName = stories.First().ThemeName;
+        var themeName = stories.First(s => s.ThemeId == themeId)?.ThemeName;
         _navigationManager.NavigateTo($"/madlibs?themeId={themeId}");
     }
 }

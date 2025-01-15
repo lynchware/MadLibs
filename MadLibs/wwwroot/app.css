@@ -66,3 +66,22 @@ h1:focus {
 .dialog-background-surface {
     background: rgb(from var(--mud-palette-surface) r g b / 75%);
 }
+
+.mud-collapse-wrapper{
+    margin-top: -8px;
+}
+.mud-collapse-wrapper > .mud-collapse-wrapper-inner {
+    background-color: var(--mud-palette-primary);
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-top: 0px;
+    color: var(--mud-palette-tertiary);
+}
+.mud-list > .mud-list-item-clickable {
+    border: 1px solid var(--mud-palette-tertiary);
+}
+.mud-list-item-clickable:hover {
+    border: 1px solid var(--mud-palette-secondary);
+    cursor: pointer;
+    background-color: var(--mud-palette-dark-darken) !important;
+}
