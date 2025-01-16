@@ -1,4 +1,5 @@
-﻿namespace MadLibs.Models
+﻿
+namespace MadLibs.Models
 {
     public class Placeholder
     {

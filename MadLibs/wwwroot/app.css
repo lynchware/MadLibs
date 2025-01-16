@@ -85,3 +85,34 @@ h1:focus {
     cursor: pointer;
     background-color: var(--mud-palette-dark-darken) !important;
 }
+
+#madlib .mud-paper {
+    background-color: var(--mud-palette-primary);
+    border: 2px groove var(--mud-palette-tertiary);
+    color: var(--mud-palette-secondary);
+}
+#madlib .mud-card-header {
+    border: 2px groove var(--mud-palette-tertiary);
+}
+
+#placeholder-form.mud-card-content {
+    flex-grow: 1;
+    padding: 16px;
+    background-color: var(--mud-palette-dark-darken);
+}
+/*Label color*/
+#madlib .mud-input-control > .mud-input-control-input-container > .mud-input-label-inputcontrol {
+    color: var(--mud-palette-tertiary-darken);
+}
+/*Input color*/
+#madlib .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {
+    color: var(--mud-palette-tertiary);
+}
+/*Story text*/
+.mud-typography-body1.storytxt {
+    font-size: var(--mud-typography-body1-size);
+    line-height: 1.8rem;
+}
+#madlib .mud-button-label {
+    gap: 12px;
+}

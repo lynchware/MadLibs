@@ -16,6 +16,8 @@ builder.Services.AddSingleton<IStoriesRepository>(builder => new StoriesReposito
 // Register the DapperRepository as a generic service using generic types
 builder.Services.AddSingleton(typeof(IRepository<>), typeof(DapperRepository<>));
 
+
+
 var app = builder.Build();
 
 

@@ -1,6 +1,6 @@
 ﻿namespace MadLibs.Models
 {
-    public class StoriesViewModel
+    public class StoryViewModel
     {
         public int Id { get; set; }
         public string Title { get; set; }

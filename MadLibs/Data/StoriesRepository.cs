@@ -19,13 +19,13 @@ namespace MadLibs.Data
             return new SqlConnection(_connectionString);
         }
 
-        public async Task<List<StoriesViewModel>> GetStoriesViewModelsAsync()
+        public async Task<List<StoryViewModel>> GetStoriesViewModelsAsync()
         {
             var sql = "GetStoriesViewModels"; // Stored procedure name
 
             using var connection = CreateConnection();
 
-            var queryResult = await connection.QueryAsync<StoriesViewModel, Placeholder, UserResponse, StoriesViewModel>(
+            var queryResult = await connection.QueryAsync<StoryViewModel, Placeholder, UserResponse, StoryViewModel>(
                 sql,
                 (viewModel, placeholder, response) =>
                 {

@@ -10,7 +10,7 @@ BEGIN
         t.ImagePath AS ImagePath,
         p.Id,
         p.StoryId,
-        p.Placeholder as PlaceholderText,
+        p.PlaceholderText,
         r.Id,
         r.StoryId,
         r.PlaceholderId,

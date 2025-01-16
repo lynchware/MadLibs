@@ -2,16 +2,20 @@
 using System.Data;
 using Dapper;
 using MadLibs.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace MadLibs.Data
 {
     public class DapperRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
+        private readonly IConfiguration _configuration;
         private readonly string _connectionString;
 
-        public DapperRepository(string connectionString)
+        public DapperRepository(IConfiguration configuration)
         {
-            _connectionString = connectionString;
+            _configuration = configuration;
+            _connectionString = _configuration.GetConnectionString("MadLibsConnectionString")
+                ?? throw new ArgumentNullException(nameof(_configuration), "Connection string not found.");
         }
 
         private IDbConnection CreateConnection()
@@ -36,6 +40,15 @@ namespace MadLibs.Data
                 storedProcedureName,
                 parameters,
                 commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<int> GetValueAsync(string sql, object parameters)
+        {
+            using var connection = CreateConnection();
+            return await connection.ExecuteScalarAsync<int>(
+                sql,
+                parameters
             );
         }
 
@@ -86,32 +99,6 @@ namespace MadLibs.Data
             var set4 = await result.ReadAsync<T4>();
 
             return (set1, set2, set3, set4);
-        }
-
-        public async Task<List<StoriesViewModel>> GetStoriesViewModelsAsync()
-        {
-            var sql = "GetStoriesViewModels"; 
-
-            using var connection = CreateConnection();
-
-            // Fetch the data and map it directly
-            var result = await connection.QueryAsync<StoriesViewModel, Placeholder, UserResponse, StoriesViewModel>(
-                sql, (viewModel, placeholder, response) =>
-                {
-                    // Add placeholders and responses directly to the view model
-                    if(placeholder != null)
-                        viewModel.Placeholders.Add(placeholder);
-
-                    if(response != null)
-                        viewModel.Responses.Add(response);
-
-                    return viewModel;
-                },
-                splitOn: "PlaceholderId,ResponseId", // Split on these fields in the result set
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result.Distinct().ToList(); 
         }
 
     }

@@ -4,6 +4,6 @@ namespace MadLibs.Data
 {
     public interface IStoriesRepository
     {
-        Task<List<StoriesViewModel>> GetStoriesViewModelsAsync();
+        Task<List<StoryViewModel>> GetStoriesViewModelsAsync();
     }
 }

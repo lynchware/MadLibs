@@ -1,0 +1,403 @@
+﻿@page "/story/{StoryId}"
+@using MadLibs.Data
+@using MadLibs.Models
+@using System.Text.RegularExpressions
+@inject IRepository<Story> _storyRepo;
+@inject IRepository<Placeholder> _phRepo;
+@inject IRepository<UserResponse> _responseRepo;
+@inject NavigationManager _navigationManager
+@rendermode InteractiveServer
+<MudGrid Spacing="2" Justify="Justify.Center">
+    <MudItem sm="4">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Color="Color.Secondary" Typo="Typo.h6">MadLib</MudText>
+                    <MudText Color="Color.Tertiary" Typo="Typo.body2">Get ready to laugh and create your unique story!</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent id="placeholder-form">
+                <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField Label="Name to save under" T="string" @bind-Value="savedName"/>
+                    @foreach (var ph in placeholders)
+                    {
+                        var response = responses.FirstOrDefault(r => r.PlaceholderId == ph.Id) ?? new UserResponse
+                        {
+                        StoryId = int.Parse(StoryId),
+                        PlaceholderId = ph.Id,
+                        Word = string.Empty
+                        };
+
+                        <MudTextField Label="@ph.PlaceholderText"
+                        T="string"
+                        @bind-Value="response.Word"
+                        For="@(() => response.Word)"
+                        Immediate="true"
+                        Validation="@(new Func<string, string>(value => string.IsNullOrEmpty(value) ? $"{ph.PlaceholderText} is required" : null))" />
+
+                    }
+                </MudForm>
+
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem Class="align-content-center">
+        <MudIconButton Size="Size.Large" Icon="@Icons.Material.Filled.DoubleArrow" Color="Color.Primary" Disabled="@(!success)" Class="ml-auto" OnClick="HandleSubmit" />
+    </MudItem>
+    <MudItem sm="7">
+        <MudPaper MinHeight="517px" Class="d-flex flex-column justify-content-between">
+            <!-- Top Content -->
+            <MudText Class="pa-3" Typo="Typo.h6">Story: @story.Title</MudText>
+
+            <!-- Middle Content -->
+            @if (isEditing)
+            {
+                <!-- Madlibs Editor -->
+                <MudCard Class="mt-2 p-4">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5" Class="mb-3">Madlibs Editor</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <!-- Story Template Editor -->
+                        <MudTextField Label="Edit Story Template"
+                                      T="string"
+                                      Lines="5"
+                                      Immediate="true"
+                                      Value="@story.Template"
+                                      ValueChanged="@(value => story.Template = value)"
+                                      Class="w-100 mb-4" />
+
+                        <!-- Placeholder Editor -->
+                        <MudText Typo="Typo.h6" Class="mb-2">Edit Placeholders</MudText>
+                        <MudList T="string">
+                            @foreach (var ph in placeholders)
+                            {
+                                <MudListItem>
+                                    <MudTextField T="string"
+                                                  Value="@ph.PlaceholderText"
+                                                  ValueChanged="@(value => ph.PlaceholderText = value)"
+                                                  Label="Placeholder"
+                                                  Immediate="true"
+                                                  Class="w-75" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   OnClick="@(() => RemovePlaceholder(ph))"
+                                                   Class="ml-2" />
+                                </MudListItem>
+                            }
+                        </MudList>
+
+                        <!-- Add New Placeholder -->
+                        <MudButton Variant="Variant.Text" OnClick="AddPlaceholder" Class="mt-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Add" /> Add Placeholder
+                        </MudButton>
+                    </MudCardContent>
+
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveStoryAndPlaceholders">
+                            <MudIcon Icon="@Icons.Material.Filled.Save" /> Save
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelEditing">
+                            <MudIcon Icon="@Icons.Material.Filled.Cancel" /> Cancel
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            }
+            else
+            {
+                @if (success && form.IsTouched)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-2">Success! Your story is ready!</MudAlert>
+                    <MudText Class="storytxt px-3 py-4" Typo="Typo.body1">@processedTemplate</MudText>
+                }
+                else if (responseBatches.Any())
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-2">@formText</MudAlert>
+                    <MudList T="string">
+                        @foreach (var batch in responseBatches)
+                        {
+                            <MudListItem OnClick="@(() => SelectResponse(batch.BatchId))">
+                                <MudText>@batch.BatchName</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Class="mt-2">@formText</MudAlert>
+                }
+            }
+            <!-- Bottom Content -->
+            <div class="mt-auto mx-auto">
+                <MudButtonGroup Variant="Variant.Filled" Color="Color.Dark" Class="w-100">
+                    <MudButton Class="gap-3" Variant="Variant.Filled" Color="Color.Tertiary" OnClick="NavigateBack">
+                        <MudIcon Icon="@Icons.Material.Filled.Eject"></MudIcon> Back
+                    </MudButton>
+                    <MudButton  Variant="Variant.Filled" Color="Color.Tertiary" OnClick="ClearForm">
+                        <MudIcon Class="gap-3" Icon="@Icons.Material.Filled.PlaylistRemove"></MudIcon> Clear
+                    </MudButton>
+                    <MudButton Class="gap-3" Variant="Variant.Filled" Color="Color.Tertiary" OnClick="LoadResponses">
+                        <MudIcon Icon="@Icons.Material.Filled.LocalShipping"></MudIcon> Load
+                    </MudButton>
+                    <MudButton Class="gap-3" Variant="Variant.Filled" Color="Color.Tertiary" OnClick="StartEditing">
+                        <MudIcon Icon="@Icons.Material.Filled.Construction"></MudIcon> Edit
+                    </MudButton>
+                    <MudButton Class="gap-3" Variant="Variant.Filled" Color="Color.Tertiary" OnClick="SaveResponses">
+                        <MudIcon Icon="@Icons.Material.Filled.Rocket"></MudIcon> Save
+                    </MudButton>
+                </MudButtonGroup>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    [Parameter]
+    public string StoryId { get; set; }
+    private Story story = new(); 
+    private List<Placeholder> placeholders = new();
+    private List<UserResponse> responses = new();
+    private List<BatchResponse> responseBatches = new();
+    private string processedTemplate;
+    private string savedName = string.Empty;
+    bool success;
+    private bool isEditing = false;
+    string[] errors = { };
+    string formText = "Please fill in all the blanks to create your story.";
+    MudForm form;
+    private bool isStoryProcessed = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        success = false;
+
+        if (int.TryParse(StoryId, out int storyId))
+        {
+            story = await _storyRepo.GetAsync("GetStoryById", new { Id = storyId });
+            placeholders = (await _phRepo.GetAllAsync("GetPlaceholdersByStory", new { StoryId = storyId })).ToList();
+            responses = placeholders.Select(ph => new UserResponse
+                {
+                    StoryId = storyId,
+                    PlaceholderId = ph.Id,
+                    Word = string.Empty
+                }).ToList();
+        }
+        else
+        {
+            Console.WriteLine("Invalid StoryId");
+        }
+    }
+    #region form handling
+
+    private async Task HandleSubmit()
+    {
+        await form.Validate();
+
+        if (!form.IsValid)
+        {
+            Console.WriteLine("Form validation failed.");
+            isStoryProcessed = false;
+            return;
+        }
+        // Replace placeholders with user responses
+        processedTemplate = story.Template;
+
+        foreach (var response in responses)
+        {
+            var placeholder = placeholders.FirstOrDefault(p => p.Id == response.PlaceholderId);
+            if (placeholder != null && !string.IsNullOrEmpty(response.Word))
+            {
+                // Replace [PLACEHOLDER_TEXT] with the user's response
+                processedTemplate = processedTemplate.Replace($"[{placeholder.PlaceholderText}]", response.Word);
+            }
+        }
+        Console.WriteLine($"Processed Story: {processedTemplate}");
+    }
+
+    private void NavigateBack()
+    {
+        _navigationManager.NavigateTo("/");
+    }
+
+    private async Task ClearForm()
+    {
+        foreach (var response in responses)
+        {
+            response.Word = string.Empty;
+        }
+
+        form.ResetValidation(); // Clears validation errors
+        processedTemplate = string.Empty;
+        success = false;
+
+        Console.WriteLine("Form cleared.");
+        StateHasChanged();
+    }
+    #endregion
+    
+    #region CRUD events
+    private async Task SaveResponses() 
+    {
+        await form.Validate();
+
+        if (!success)
+        {
+            Console.WriteLine("Form validation failed. Cannot save responses.");
+            return;
+        }
+        var latestBatchId = await _responseRepo.GetValueAsync(
+                        "SELECT ISNULL(MAX(BatchId), 0) FROM [dbo].[UserResponses] WHERE StoryId = @StoryId",
+                        new { StoryId = StoryId });
+        var newBatchId = latestBatchId + 1;
+        // Save each response to the database
+        foreach (var response in responses)
+        {
+            // Check if the response is valid
+            if (!string.IsNullOrWhiteSpace(response.Word))
+            {
+                var newId = await _responseRepo.AddAsync(
+                            "SaveUserResponse", new 
+                            {
+                                StoryId = response.StoryId, 
+                                PlaceholderId = response.PlaceholderId, 
+                                Word = response.Word,
+                                BatchName = savedName,
+                                BatchId = newBatchId 
+                            });
+            }
+        }
+        await ClearForm();
+        NavigateBack();
+
+        Console.WriteLine("User responses saved successfully.");
+    }
+
+    private async Task LoadResponses()
+    {
+        var allResponses = (await _responseRepo.GetAllAsync("GetUserResponsesByStory", new { StoryId = StoryId })).ToList();
+        if (!allResponses.Any())
+        {
+            responses = new();
+            formText = "No responses found for this story.";
+        }
+        else if(allResponses.Select(r => r.BatchId).Distinct().Count() > 1)
+        {
+            responseBatches = allResponses
+                 .GroupBy(r => new { r.BatchId, r.BatchName })
+                 .Select(g => new BatchResponse
+                     {
+                         BatchId = g.Key.BatchId,
+                         BatchName = g.Key.BatchName,
+                         Responses = g.ToList()
+                     }).ToList();
+
+            formText = $"{responseBatches.Count} batches of responses found. Please select which one to load";
+        }
+        else{
+            formText = "Responses loaded successfully.";
+            responses = allResponses;
+        }
+        form.ResetValidation();
+        form.IsTouched = true;
+        StateHasChanged();
+    }
+
+    private async Task SelectResponse(int batchId)
+    {
+        var selectedBatch = responseBatches.FirstOrDefault(r => r.BatchId == batchId);
+
+        responses = selectedBatch.Responses.ToList();
+        form.ResetValidation();
+        form.IsTouched = true;
+        savedName = selectedBatch.BatchName;
+        StateHasChanged();
+    }
+    #endregion
+
+    #region Edit Events
+
+    private void StartEditing()
+    {
+        isEditing = true;
+    }
+
+    private void CancelEditing()
+    {
+        isEditing = false;
+        // Optionally reset any changes if needed
+    }
+
+    private void AddPlaceholder()
+    {
+        placeholders.Add(new Placeholder
+            {
+                StoryId = int.Parse(StoryId),
+                PlaceholderText = string.Empty
+            });
+    }
+
+    private List<string> ExtractPlaceholders(string template)
+    {
+        var matches = Regex.Matches(template, @"\[(.*?)\]");
+        return matches.Select(m => m.Groups[1].Value).ToList();
+    }
+
+    private void MapPlaceholdersToTemplate()
+    {
+        // Extract placeholders from the template
+        var templatePlaceholders = ExtractPlaceholders(story.Template);
+
+        // Map placeholders by occurrence
+        for (int i = 0; i < templatePlaceholders.Count; i++)
+        {
+            if (i < placeholders.Count)
+            {
+                placeholders[i].PlaceholderText = templatePlaceholders[i];
+            }
+        }
+    }
+
+    private void UpdateStoryTemplate(Placeholder updatedPlaceholder, string oldPlaceholderText)
+    {
+        // Replace the old placeholder text in the story template with the updated one
+        if (!string.IsNullOrEmpty(oldPlaceholderText))
+        {
+            story.Template = story.Template.Replace($"[{oldPlaceholderText}]", $"[{updatedPlaceholder.PlaceholderText}]");
+        }
+    }
+
+
+    private void RemovePlaceholder(Placeholder ph)
+    {
+        placeholders.Remove(ph);
+    }
+
+    private async Task SaveStoryAndPlaceholders()
+    {
+        // Save the story template
+        await _storyRepo.UpdateAsync("UpdateStory", new { Id = story.Id, Template = story.Template });
+
+        // Save the placeholders
+        foreach (var ph in placeholders)
+        {
+            if (string.IsNullOrWhiteSpace(ph.PlaceholderText))
+                continue;
+
+            if (ph.Id == 0)
+            {
+                // Insert new placeholder
+                await _phRepo.AddAsync("AddPlaceholder", new { ph.StoryId, ph.PlaceholderText });
+            }
+            else
+            {
+                // Update existing placeholder
+                await _phRepo.UpdateAsync("UpdatePlaceholder", new { ph.Id, ph.PlaceholderText });
+            }
+        }
+
+        isEditing = false; // Exit editing mode
+        Console.WriteLine("Story and placeholders saved successfully.");
+    }
+    #endregion
+}

@@ -68,8 +68,11 @@
     <Build Include="StoredProcedures\GetPlaceholdersByStory.sql" />
     <Build Include="StoredProcedures\GetUserResponsesByStory.sql" />
     <Build Include="Tables\Theme.sql" />
-    <Build Include="StoredProcedures\GetEverything.sql" />
     <Build Include="StoredProcedures\GetStoriesViewModels.sql" />
     <Build Include="StoredProcedures\GetAllThemes.sql" />
+    <Build Include="StoredProcedures\SaveUserResponse.sql" />
+    <Build Include="StoredProcedures\UpdateStory.sql" />
+    <Build Include="StoredProcedures\AddPlaceholder.sql" />
+    <Build Include="StoredProcedures\UpdatePlaceholder.sql" />
   </ItemGroup>
 </Project>

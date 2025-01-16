@@ -26,7 +26,7 @@
                 <MudList T="string">
                     @foreach (var story in theme)
                     {
-                        <MudListItem>
+                        <MudListItem OnClick="@(() => SelectStory(story.Id))">
                             <MudText>@story.Title</MudText>
                         </MudListItem>
                     }
@@ -37,17 +37,17 @@
 </MudGrid>
 
 @code {
-    private List<StoriesViewModel> stories = new();
+    private List<StoryViewModel> stories = new();
     private int selectedThemeId = 0;
-    private StoriesViewModel? selectedStory = null;
+    private StoryViewModel? selectedStory = null;
     private Dictionary<int, bool> expandedThemes = new();
 
     protected override async Task OnInitializedAsync()
     {
         stories = (await _storiesRepository.GetStoriesViewModelsAsync()).ToList();
         Console.WriteLine("stories are populated!");
-        // Initialize expandedThemes dictionary with the first theme expanded
-        bool firstTheme = true;
+
+        bool firstTheme = false;
         foreach (var themeId in stories.GroupBy(s => s.ThemeId).Select(g => g.Key))
         {
             expandedThemes[themeId] = firstTheme;
@@ -67,7 +67,13 @@
         Console.WriteLine($"Toggling visibility for themeId: {themeId}");
         expandedThemes[themeId] = !expandedThemes.GetValueOrDefault(themeId, false);
         StateHasChanged();
-    }    
+    }   
+    
+    async Task SelectStory(int storyId)
+    {
+        selectedStory = stories.FirstOrDefault(s => s.Id == storyId);
+        _navigationManager.NavigateTo($"/story/{storyId}");
+    }
 
     private void SelectTheme(int themeId)  
     {
