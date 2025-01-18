@@ -1,8 +1,9 @@
 ﻿CREATE PROCEDURE AddPlaceholder
     @StoryId INT,
-    @PlaceholderText NVARCHAR(255)
+    @PlaceholderText NVARCHAR(255),
+    @PlaceholderIndex INT
 AS
 BEGIN
-    INSERT INTO Placeholders (StoryId, PlaceholderText)
-    VALUES (@StoryId, @PlaceholderText);
+    INSERT INTO [dbo].[Placeholders] (StoryId, PlaceholderText, PlaceholderIndex)
+    VALUES (@StoryId, @PlaceholderText, @PlaceholderIndex);
 END;

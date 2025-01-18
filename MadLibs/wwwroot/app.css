@@ -116,3 +116,12 @@ h1:focus {
 #madlib .mud-button-label {
     gap: 12px;
 }
+#madlib .mud-input > textarea.mud-input-root{
+    color: var(--mud-palette-tertiary);
+    font-weight: 300;
+    font-size: 1rem;
+}
+#madlib .mud-table-cell {
+    color: var(--mud-palette-secondary);
+    background-color: var(--mud-palette-dark-darken);
+}
