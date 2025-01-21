@@ -18,21 +18,22 @@
             </MudCardHeader>
             <MudCardContent id="placeholder-form">
                 <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-                    <MudTextField Label="Name to save under" T="string" @bind-Value="savedName"/>
-                    @foreach (var ph in placeholders)
+                    <MudTextField Label="Name to save under" T="string" @bind-Value="savedName" />
+                    @foreach (var ph in placeholders.OrderBy(p => p.PlaceholderIndex))
                     {
                         var response = responses.FirstOrDefault(r => r.PlaceholderId == ph.Id)
-                        ?? new UserResponse    
-                        {
-                            StoryId = int.Parse(StoryId),
-                            PlaceholderId = ph.Id,
-                            Word = string.Empty
-                        };
+                        ?? new UserResponse
+                            {
+                                StoryId = int.Parse(StoryId),
+                                PlaceholderId = ph.Id,
+                                PlaceholderIndex = ph.PlaceholderIndex,
+                                Word = string.Empty
+                            };
 
                         <MudTextField Label="@(ph.PlaceholderText)"
                         T="string"
                         @bind-Value="response.Word"
-                        Validation="@(new Func<string, string>(value => string.IsNullOrEmpty(value) ? $"{ph.PlaceholderText} is required" : null))" />
+                        Validation="@(new Func<string, string>(value => Validation(value, ph.PlaceholderText)))" />
                     }
                 </MudForm>
 
@@ -61,27 +62,26 @@
                         T="string"
                         Lines="5"
                         Immediate="true"
-                        Value="@story.Template"
-                        ValueChanged="@(value => story.Template = value)"
+                        @bind-Value="@story.Template"
                         Class="w-100 mb-4" />
 
                         <!-- Placeholder Editor -->
                         <MudText Typo="Typo.h6" Class="mb-2">Edit Placeholders</MudText>
-                        <MudTable Items="placeholders" Dense="true">
+                        <MudTable Items="placeholders.OrderBy(p => p.PlaceholderIndex)" Dense="true">
                             <HeaderContent>
-                                <MudTh>Id</MudTh>
+                                <MudTh>Index</MudTh>
                                 <MudTh>Placeholder Text</MudTh>
                                 <MudTh></MudTh>
                             </HeaderContent>
                             <RowTemplate>
-                                <MudTd DataLabel="Id" Style="width: auto;">@context.Id</MudTd>
+                                <MudTd DataLabel="Index" Style="width: auto;">@context.PlaceholderIndex</MudTd>
                                 <MudTd DataLabel="Placeholder Text" Style="width: 100%;">
                                     <MudTextField Label="@context.PlaceholderText"
-                                    T="string"
-                                    Value="@context.PlaceholderText"
-                                    Immediate="true"
-                                    ValueChanged="@(value => context.PlaceholderText = value)"
-                                    Validation="@(new Func<string, string>(value => string.IsNullOrEmpty(value) ? $"{context.PlaceholderText} is required" : null))" />
+                                                  T="string"
+                                                  Value="@context.PlaceholderText"
+                                                  Immediate="true"
+                                                  ValueChanged="@(value => context.PlaceholderText = value)"
+                                                  Validation="@(new Func<string, string>(value => Validation(value, context.PlaceholderText)))" />
                                 </MudTd>
                                 <MudTd>
                                     <MudButton Variant="Variant.Text" OnClick="@(() => RemovePlaceholder(context))">
@@ -91,7 +91,6 @@
                             </RowTemplate>
                         </MudTable>
 
-                        <!-- Add New Placeholder -->
                         <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="AddPlaceholder" Class="mt-3">
                             <MudIcon Icon="@Icons.Material.Filled.Add" /> Add Placeholder
                         </MudButton>
@@ -163,6 +162,7 @@
     private List<Placeholder> placeholders = new();
     private List<UserResponse> responses = new();
     private List<BatchResponse> responseBatches = new();
+    private List<int> placeholdersToRemove = new();
     private string processedTemplate;
     private string savedName = string.Empty;
     bool success;
@@ -170,7 +170,6 @@
     string[] errors = { };
     string formText = "Please fill in all the blanks to create your story.";
     MudForm form;
-    private int newPlaceholderIndex = 0;
     private bool isStoryProcessed = false;
 
     protected override async Task OnParametersSetAsync()
@@ -199,6 +198,22 @@
 
     #region form handling
 
+    private string Validation(string value, string placeholderText)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return $"{placeholderText} is required";
+        }
+
+        var wordCount = value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        if (wordCount >= 50)
+        {
+            return $"{placeholderText} must be less than 50 words";
+        }
+
+        return null;
+    }
+
     private async Task HandleSubmit()
     {
         await form.Validate();
@@ -212,13 +227,12 @@
         // Replace placeholders with user responses
         processedTemplate = story.Template;
 
-        foreach (var response in responses)
+        foreach (var response in responses.OrderByDescending(r => r.PlaceholderIndex))
         {
             var placeholder = placeholders.FirstOrDefault(p => p.Id == response.PlaceholderId);
             if (placeholder != null && !string.IsNullOrEmpty(response.Word))
             {
-                // var indexedPlaceholder = $"[{placeholder.PlaceholderText}_{placeholder.PlaceholderIndex}]";
-                processedTemplate = processedTemplate.Replace(placeholder.Id.ToString(), response.Word);
+                processedTemplate = processedTemplate.Replace($"[{placeholder.PlaceholderIndex}]", response.Word);
             }
         }
         Console.WriteLine($"Processed Story: {processedTemplate}");
@@ -235,7 +249,7 @@
         {
             response.Word = string.Empty;
         }
-
+        responseBatches.Clear();
         form.ResetValidation(); // Clears validation errors
         processedTemplate = string.Empty;
         success = false;
@@ -301,14 +315,30 @@
                      }).ToList();
 
             formText = $"{responseBatches.Count} batches of responses found. Please select which one to load";
+            form.IsTouched = true;
         }
         else{
             formText = "Responses loaded successfully.";
             responses = allResponses;
             savedName = allResponses.FirstOrDefault().BatchName;
+            form.IsTouched = true;
+        }
+        // Ensure responses list includes entries for all placeholders
+        foreach (var ph in placeholders)
+        {
+            if (!responses.Any(r => r.PlaceholderId == ph.Id))
+            {
+                responses.Add(new UserResponse
+                    {
+                        StoryId = int.Parse(StoryId),
+                        PlaceholderId = ph.Id,
+                        PlaceholderIndex = ph.PlaceholderIndex,
+                        Word = string.Empty
+                    });
+            }
         }
         form.ResetValidation();
-        form.IsTouched = true;
+       
         StateHasChanged();
     }
 
@@ -329,7 +359,7 @@
     private void StartEditing()
     {
         isEditing = true;
-        newPlaceholderIndex = placeholders.Max(p => p.Id) + 1;
+        placeholders.OrderBy(p => p.PlaceholderIndex);
     }
 
     private void CancelEditing()
@@ -340,25 +370,70 @@
 
     private async Task AddPlaceholder()
     {
+        var newIndex = placeholders.Max(placeholders => placeholders.PlaceholderIndex) + 1;
         placeholders.Add(new Placeholder
         {
-            Id = newPlaceholderIndex ++,
+            PlaceholderIndex = newIndex,
             PlaceholderText = string.Empty
         });
     }
 
-    private void RemovePlaceholder(Placeholder ph)
+    private async void RemovePlaceholder(Placeholder ph)
     {
         placeholders.Remove(ph);
+        for (int i = 0; i < placeholders.Count; i++)
+        {
+            placeholders[i].PlaceholderIndex = i + 1;
+        }
         //remove the placeholder from the processedTemplate
         processedTemplate = Regex.Replace(processedTemplate, $@"\[{ph.Id}\]", string.Empty);
+        //remove the placeholder from the responses and placeholders
+        var responseToRemove = responses.FirstOrDefault(r => r.PlaceholderId == ph.Id);
+        if (responseToRemove != null)
+        {
+            responses.Remove(responseToRemove);
+        }
+        placeholdersToRemove.Add(ph.Id);
+        placeholders.Remove(ph);
+
+        StateHasChanged();
     }
 
     private async Task SaveStoryAndPlaceholders()
     {
-        // TODO: Save the story and placeholders to the database
+        // Update the story template
+        await _storyRepo.UpdateAsync("UpdateStory", new { story.Id, story.Template });
+
+        foreach (var ph in placeholders)
+        {
+            if (ph.Id == 0)
+            {
+                // Insert new placeholder
+                ph.StoryId = Int32.Parse(StoryId);
+                var newId = await _phRepo.AddAsync("AddPlaceholder", ph);
+                ph.Id = newId; 
+
+            }
+            else
+            {
+                // Update existing placeholder
+                await _phRepo.UpdateAsync("UpdatePlaceholder", new { ph.Id, ph.PlaceholderText, ph.PlaceholderIndex });
+            }
+        }
+        //delete all userresponses for story
+        await _responseRepo.DeleteAsync("DeleteUserResponsesByStory", new { StoryId });
+        if (placeholdersToRemove.Count > 0)
+        {
+            //delete all userresponses for removed placeholders
+            for (int i = 0; i < placeholdersToRemove.Count; i++)
+            {
+                await _phRepo.DeleteAsync("DeletePlaceholder", new { Id = i });
+            }
+        }
+        responseBatches.Clear();
         isEditing = false;
         Console.WriteLine("Story and placeholders saved successfully.");
+        StateHasChanged();
     }
 
     #endregion

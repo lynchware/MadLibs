@@ -116,6 +116,10 @@ h1:focus {
 #madlib .mud-button-label {
     gap: 12px;
 }
+#madlib .mud-button-group-filled.mud-button-group-override-styles.mud-button-group-filled-dark .mud-button-root:hover {
+    background-color: var(--mud-palette-secondary);
+    color: var(--mud-palette-primary);
+}
 #madlib .mud-input > textarea.mud-input-root{
     color: var(--mud-palette-tertiary);
     font-weight: 300;
@@ -124,4 +128,21 @@ h1:focus {
 #madlib .mud-table-cell {
     color: var(--mud-palette-secondary);
     background-color: var(--mud-palette-dark-darken);
+}
+
+@media (max-width: 855px) {
+    .mud-grid-item {
+        min-width: 80% !important;
+        text-align: center;
+    }
+
+    .mud-icon-button-label {
+        transform: rotate(90deg);
+    }
+    #madlib .mud-button-label{
+        gap: 1px;
+    }
+    #madlib .mud-button{
+        padding: 7px;
+    }
 }

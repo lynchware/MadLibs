@@ -51,15 +51,28 @@ namespace MadLibs.Data
                 parameters
             );
         }
-
+        //example using Dynamic Parameters
         public async Task<int> AddAsync(string storedProcedureName, object parameters)
         {
             using var connection = CreateConnection();
-            return await connection.ExecuteAsync(
-                storedProcedureName,
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
+            var dynamicParameters = new DynamicParameters(parameters);
+            dynamicParameters.Add("NewId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            try
+            {
+                await connection.ExecuteAsync(
+            storedProcedureName,
+            dynamicParameters,
+            commandType: CommandType.StoredProcedure
+        );
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+
+            return dynamicParameters.Get<int>("NewId");
         }
 
         public async Task<int> UpdateAsync(string storedProcedureName, object parameters)
@@ -75,11 +88,19 @@ namespace MadLibs.Data
         public async Task<int> DeleteAsync(string storedProcedureName, object parameters)
         {
             using var connection = CreateConnection();
-            return await connection.ExecuteAsync(
-                storedProcedureName,
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
+            try
+            {
+                return await connection.ExecuteAsync(
+                    storedProcedureName,
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
 
         public async Task<(IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>, IEnumerable<T4>)> QueryMultipleAsync<T1, T2, T3, T4>(

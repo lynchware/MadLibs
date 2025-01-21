@@ -74,5 +74,7 @@
     <Build Include="StoredProcedures\UpdateStory.sql" />
     <Build Include="StoredProcedures\AddPlaceholder.sql" />
     <Build Include="StoredProcedures\UpdatePlaceholder.sql" />
+    <Build Include="StoredProcedures\DeletePlaceholder.sql" />
+    <Build Include="StoredProcedures\DeleteUserResponsesByStory.sql" />
   </ItemGroup>
 </Project>
