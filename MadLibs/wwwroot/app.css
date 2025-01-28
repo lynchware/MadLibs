@@ -1,7 +1,12 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
-
+body {
+    background: rgb(255,224,130);
+    background: radial-gradient(circle, rgba(255,224,130,1) 55%, rgba(54,71,79,1) 100%);
+    background-image: radial-gradient(circle at center center, #ffe082, #36474F), repeating-radial-gradient(circle at center center, #ffe082, #ffe082, 10px, transparent 20px, transparent 10px);
+    background-blend-mode:multiply;
+}
 a, .btn-link {
     color: #006bb7;
 }
@@ -103,6 +108,13 @@ h1:focus {
 /*Label color*/
 #madlib .mud-input-control > .mud-input-control-input-container > .mud-input-label-inputcontrol {
     color: var(--mud-palette-tertiary-darken);
+}
+#madlib .mud-container {
+    background-color: #E1F5FE;
+    opacity: 1;
+    border: 4px var(--mud-palette-secondary) inset;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 /*Input color*/
 #madlib .mud-input > input.mud-input-root, div.mud-input-slot.mud-input-root {

@@ -60,11 +60,7 @@ namespace MadLibs.Data
 
             try
             {
-                await connection.ExecuteAsync(
-            storedProcedureName,
-            dynamicParameters,
-            commandType: CommandType.StoredProcedure
-        );
+                await connection.ExecuteAsync(storedProcedureName, dynamicParameters, commandType: CommandType.StoredProcedure);
             }
             catch(Exception ex)
             {
@@ -73,6 +69,30 @@ namespace MadLibs.Data
             }
 
             return dynamicParameters.Get<int>("NewId");
+        }
+
+        public async Task<string> AddAsyncWithValidation(string storedProcedureName, object parameters)
+        {
+            using var connection = CreateConnection();
+            var dynamicParameters = new DynamicParameters(parameters);
+            dynamicParameters.Add("NewId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            dynamicParameters.Add("Message", dbType: DbType.String, direction: ParameterDirection.Output, size: 500);
+            try
+            {
+                await connection.ExecuteAsync(storedProcedureName, dynamicParameters, commandType: CommandType.StoredProcedure);
+
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+            if(dynamicParameters.Get<int>("NewId") == 0)
+            {
+                return dynamicParameters.Get<string>("Message");
+            }
+            else
+                 return dynamicParameters.Get<string>("NewId");
         }
 
         public async Task<int> UpdateAsync(string storedProcedureName, object parameters)
@@ -100,6 +120,31 @@ namespace MadLibs.Data
             {
                 Console.WriteLine(ex.Message);
                 throw;
+            }
+        }
+
+        public async Task SaveBatch(string storedProcedureName, DataTable data)
+        {
+            using(IDbConnection connection = CreateConnection())
+            {
+                connection.Open();
+                var p = new
+                {
+                    placeholders = data.AsTableValuedParameter("BasicUDT")
+                };
+                using(var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        await connection.ExecuteAsync(storedProcedureName, p, transaction, commandType: CommandType.StoredProcedure);
+                        transaction.Commit();
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine($"Error: {ex.Message}");
+                        transaction.Rollback();
+                    }                
+                }
             }
         }
 

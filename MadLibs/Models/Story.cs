@@ -1,4 +1,6 @@
-﻿namespace MadLibs.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace MadLibs.Models
 {
     public class Story
     {

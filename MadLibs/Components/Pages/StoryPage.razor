@@ -2,6 +2,7 @@
 @using MadLibs.Data
 @using MadLibs.Models
 @using System.Text.RegularExpressions
+@using System.Data
 @inject IRepository<Story> _storyRepo;
 @inject IRepository<Placeholder> _phRepo;
 @inject IRepository<UserResponse> _responseRepo;
@@ -30,9 +31,7 @@
                                 Word = string.Empty
                             };
 
-                        <MudTextField Label="@(ph.PlaceholderText)"
-                        T="string"
-                        @bind-Value="response.Word"
+                        <MudTextField Label="@(ph.PlaceholderText)" T="string" @bind-Value="response.Word"
                         Validation="@(new Func<string, string>(value => Validation(value, ph.PlaceholderText)))" />
                     }
                 </MudForm>
@@ -119,7 +118,7 @@
                     <MudList T="string">
                         @foreach (var batch in responseBatches)
                         {
-                            <MudListItem OnClick="@(() => SelectResponse(batch.BatchId))">
+                            <MudListItem OnClick="@(() => SelectSavedBatch(batch.BatchId))">
                                 <MudText>@batch.BatchName</MudText>
                             </MudListItem>
                         }
@@ -278,15 +277,15 @@
         {
             if (!string.IsNullOrWhiteSpace(response.Word))
             {
-                await _responseRepo.AddAsync("SaveUserResponse", new
-                {
-                    StoryId = response.StoryId,
-                    PlaceholderId = response.PlaceholderId,
-                    PlaceholderIndex = response.PlaceholderIndex,
-                    Word = response.Word,
-                    BatchId = newBatchId,
-                    BatchName = savedName
-                });
+               await _responseRepo.AddAsync("SaveUserResponse", new
+                    {
+                        StoryId = response.StoryId,
+                        PlaceholderId = response.PlaceholderId,
+                        PlaceholderIndex = response.PlaceholderIndex,
+                        Word = response.Word,
+                        BatchId = newBatchId,
+                        BatchName = savedName
+                    });
             }
         }
         await ClearForm();
@@ -322,7 +321,15 @@
             responses = allResponses;
             savedName = allResponses.FirstOrDefault().BatchName;
             form.IsTouched = true;
+            
         }
+        UpdatePlaceholdersAndResponses();
+        form.ResetValidation();
+        StateHasChanged();
+    }
+
+    private void UpdatePlaceholdersAndResponses()
+    {
         // Ensure responses list includes entries for all placeholders
         foreach (var ph in placeholders)
         {
@@ -337,12 +344,14 @@
                     });
             }
         }
-        form.ResetValidation();
-       
+
+        // Remove responses that no longer have corresponding placeholders
+        responses.RemoveAll(r => !placeholders.Any(p => p.Id == r.PlaceholderId));
+
         StateHasChanged();
     }
 
-    private async Task SelectResponse(int batchId)
+    private async Task SelectSavedBatch(int batchId)
     {
         var selectedBatch = responseBatches.FirstOrDefault(r => r.BatchId == batchId);
 
@@ -366,6 +375,7 @@
     {
         isEditing = false;
         // Optionally reset any changes if needed
+
     }
 
     private async Task AddPlaceholder()
@@ -404,36 +414,34 @@
         // Update the story template
         await _storyRepo.UpdateAsync("UpdateStory", new { story.Id, story.Template });
 
-        foreach (var ph in placeholders)
-        {
-            if (ph.Id == 0)
-            {
-                // Insert new placeholder
-                ph.StoryId = Int32.Parse(StoryId);
-                var newId = await _phRepo.AddAsync("AddPlaceholder", ph);
-                ph.Id = newId; 
-
-            }
-            else
-            {
-                // Update existing placeholder
-                await _phRepo.UpdateAsync("UpdatePlaceholder", new { ph.Id, ph.PlaceholderText, ph.PlaceholderIndex });
-            }
-        }
         //delete all userresponses for story
         await _responseRepo.DeleteAsync("DeleteUserResponsesByStory", new { StoryId });
-        if (placeholdersToRemove.Count > 0)
-        {
-            //delete all userresponses for removed placeholders
-            for (int i = 0; i < placeholdersToRemove.Count; i++)
-            {
-                await _phRepo.DeleteAsync("DeletePlaceholder", new { Id = i });
-            }
-        }
+
+        //replace all placeholders for story
+        await _phRepo.SaveBatch("BulkSavePlaceholders", ConvertToDataTable(placeholders));
+
         responseBatches.Clear();
         isEditing = false;
         Console.WriteLine("Story and placeholders saved successfully.");
+        UpdatePlaceholdersAndResponses();
+
         StateHasChanged();
+    }
+
+    private DataTable ConvertToDataTable(List<Placeholder> placeholders)
+    {
+        var dataTable = new DataTable();
+        dataTable.Columns.Add("Id", typeof(int));
+        dataTable.Columns.Add("StoryId", typeof(int));
+        dataTable.Columns.Add("PlaceholderText", typeof(string));
+        dataTable.Columns.Add("PlaceholderIndex", typeof(int));
+
+        foreach (var placeholder in placeholders)
+        {
+            dataTable.Rows.Add(placeholder.Id, StoryId, placeholder.PlaceholderText, placeholder.PlaceholderIndex);
+        }
+
+        return dataTable;
     }
 
     #endregion

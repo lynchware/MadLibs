@@ -7,6 +7,6 @@
 	[Word] NVARCHAR(50) NOT NULL,
 	[BatchId] INT NOT NULL,
 	[BatchName] NVARCHAR(50) NULL,
-	CONSTRAINT FK_UserResponses_Stories FOREIGN KEY (StoryId) REFERENCES Stories(Id),
-	CONSTRAINT FK_UserResponses_Placeholders FOREIGN KEY (PlaceholderId) REFERENCES Placeholders(Id)
+	--CONSTRAINT FK_UserResponses_Stories FOREIGN KEY (StoryId) REFERENCES Stories(Id),
+	--CONSTRAINT FK_UserResponses_Placeholders FOREIGN KEY (PlaceholderId) REFERENCES Placeholders(Id)
 )

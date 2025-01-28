@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE GetAllStoriesByUser
+﻿CREATE PROCEDURE GetAllStories
 AS
 BEGIN
     SELECT * FROM Stories

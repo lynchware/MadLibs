@@ -58,6 +58,7 @@
     <Folder Include="Properties" />
     <Folder Include="Tables" />
     <Folder Include="StoredProcedures" />
+    <Folder Include="Types" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Stories.sql" />
@@ -76,5 +77,11 @@
     <Build Include="StoredProcedures\UpdatePlaceholder.sql" />
     <Build Include="StoredProcedures\DeletePlaceholder.sql" />
     <Build Include="StoredProcedures\DeleteUserResponsesByStory.sql" />
+    <Build Include="StoredProcedures\GetAllPlaceholders.sql" />
+    <Build Include="StoredProcedures\GetAllResponses.sql" />
+    <Build Include="StoredProcedures\GetAllStoriesThemes.sql" />
+    <Build Include="Types\BasicUDT.sql" />
+    <Build Include="StoredProcedures\BulkSavePlaceholders.sql" />
+    <Build Include="StoredProcedures\SaveUserResponseWithValidation.sql" />
   </ItemGroup>
 </Project>

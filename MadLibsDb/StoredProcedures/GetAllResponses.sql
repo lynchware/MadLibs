@@ -1,0 +1,5 @@
+﻿CREATE PROCEDURE GetAllResponses
+AS
+BEGIN
+    SELECT * FROM UserResponses
+END

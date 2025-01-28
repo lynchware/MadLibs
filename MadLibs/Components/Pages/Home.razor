@@ -44,7 +44,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        stories = (await _storiesRepository.GetStoriesViewModelsAsync()).ToList();
+        // await _storiesRepository.MethodTesting();
+
+        stories = (await _storiesRepository.GetStoriesViewModelsAlt()).ToList();
         Console.WriteLine("stories are populated!");
 
         bool firstTheme = false;
